@@ -7,11 +7,11 @@ module.exports =
 
     from:
       type: 'string'
-      reuired: true
+      required: true
 
     to:
       type: 'string'
-      rquired: true
+      required: true
 
     rate:
       type: 'float'
