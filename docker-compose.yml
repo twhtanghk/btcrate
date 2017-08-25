@@ -1,0 +1,9 @@
+version: '2'
+services:
+  vagrant:
+    image: twhtanghk/btcrate
+    ports:
+      - 1337
+    env_file: 
+      - ./.env
+      - ../.env
