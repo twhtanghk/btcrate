@@ -13,7 +13,8 @@
     "needle": "^2.0.0",
     "node-schedule": "^1.2.4",
     "rc": "1.0.1",
-    "sails": "~0.12.13"
+    "sails": "~0.12.13",
+    "sails-mongo": "^0.12.2"
   },
   "scripts": {
     "debug": "node debug app.js",
