@@ -1,3 +1,5 @@
+assert = require 'assert'
+
 [
   'DB'
 ].map (name) ->
