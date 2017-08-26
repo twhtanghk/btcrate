@@ -4,11 +4,7 @@ ENV VER=${VER:-master} \
     REPO=https://github.com/twhtanghk/btcrate \
     APP=/usr/src/app
 
-RUN apt-get update \
-&&  apt-get install -y git \
-&&  apt-get clean \
-&&  rm -rf /var/lib/apt/lists/* \
-&&  git clone -b $VER $REPO $APP
+RUN git clone -b $VER $REPO $APP
 
 WORKDIR $APP
 
