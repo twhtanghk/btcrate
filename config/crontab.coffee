@@ -9,7 +9,7 @@ module.exports =
         .then (rates) ->
           Promise.all _.map rates, (rate, currency) ->
             sails.models.rate.create
-              from: 'btc'
+              from: 'BTC'
               to: currency
               rate: rate
         .catch sails.log.error
