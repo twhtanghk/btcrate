@@ -1,6 +1,6 @@
 version: '2'
 services:
-  vagrant:
+  btcrate:
     image: twhtanghk/btcrate
     ports:
       - 1337
