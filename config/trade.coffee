@@ -14,6 +14,8 @@ module.exports =
       'ETH-USD'
     ]
     init: ->
+      if process.env.NODE_ENV != 'production'
+        return
       ws = new WebsocketClient @ratelist, null, null, channels: [ 'ticker' ]
       ws
         .on 'message', (data) =>
@@ -25,4 +27,4 @@ module.exports =
               .catch sails.log.error
         .on 'error', sails.log.error
         .on 'close', ->
-          sails.log.error 'gdax ws closed'
+          sails.log.error "#{new Date()} gdax ws closed"
