@@ -14,14 +14,15 @@ module.exports =
       'ETH-USD'
     ]
     init: ->
-      ws = new WebsocketClient @trade.ratelist, null, null, channels: [ 'ticker' ]
+      ws = new WebsocketClient @ratelist, null, null, channels: [ 'ticker' ]
       ws
-        .on 'message', (data) ->
-          type = @trade.type
-          if data.type not in type
-            type.push data.type
+        .on 'message', (data) =>
+          if data.type not in @type
+            @type.push data.type
           if data.type == 'match'
-            sails.models.order.crate data
+            sails.models.trade
+              .create transform data
+              .catch sails.log.error
         .on 'error', sails.log.error
         .on 'close', ->
           sails.log.error 'gdax ws closed'

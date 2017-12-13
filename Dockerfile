@@ -1,15 +1,12 @@
-FROM node:6
+FROM node
 
-ENV VER=${VER:-master} \
-    REPO=https://github.com/twhtanghk/btcrate \
-    APP=/usr/src/app
-
-RUN git clone -b $VER $REPO $APP
+ENV APP=/usr/src/app
+ADD . $APP
 
 WORKDIR $APP
 
-RUN npm install
+RUN yarn install
 	
 EXPOSE 1337
 
-ENTRYPOINT npm start
+ENTRYPOINT ["npm", "start"]

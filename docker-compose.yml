@@ -1,9 +1,17 @@
 version: '2'
 services:
+  mongo:
+    image: mongo
+    ports:
+      - 27017
+    env_file:
+      - ../.env
+  
   btcrate:
     image: twhtanghk/btcrate
+    depends_on:
+      - mongo
     ports:
       - 1337
     env_file: 
-      - ./.env
       - ../.env
