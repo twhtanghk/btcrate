@@ -7,12 +7,14 @@
   "dependencies": {
     "bluebird": "^3.5.1",
     "coffeescript": "^2.1.0",
+    "concat-stream": "^1.6.0",
     "gdax": "^0.4.2",
     "include-all": "^1.0.0",
     "lodash": "^4.17.4",
     "rc": "1.0.1",
     "sails": "~0.12.14",
-    "sails-mongo": "^0.12.2"
+    "sails-mongo": "^0.12.2",
+    "timestream-aggregates": "^0.1.7"
   },
   "scripts": {
     "start": "node app.js --prod"
