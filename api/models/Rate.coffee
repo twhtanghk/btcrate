@@ -7,17 +7,26 @@ module.exports =
 
   attributes:
 
-    from:
+    type:
       type: 'string'
-      required: true
 
-    to:
+    trade_id:
+      type: 'integer'
+
+    side:
       type: 'string'
-      required: true
 
-    rate:
+    size:
       type: 'float'
-      required: true
+
+    price:
+      type: 'float'
+
+    product_id:
+      type: 'string'
+
+    time:
+      type: 'datetime'
 
   findDelta: (currency = 'HKD', limit = 100) ->
     @find to: currency
