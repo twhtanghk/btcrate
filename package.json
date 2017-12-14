@@ -14,6 +14,8 @@
     "rc": "1.0.1",
     "sails": "~0.12.14",
     "sails-mongo": "^0.12.2",
+    "stampit": "^4.0.2",
+    "stampit-event-bus": "^0.1.1",
     "timestream-aggregates": "^0.1.7"
   },
   "scripts": {

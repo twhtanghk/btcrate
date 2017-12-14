@@ -1,9 +1,52 @@
+    _ = require 'lodash'
     {WebsocketClient} = require 'gdax'
+    stampit = require 'stampit'
 
+    Sample = require 'stampit-event-bus'
+      .props 
+
+sample data for analysis
+
+        data: []
+
+default sample data within 1 hour
+
+        range: 3600000
+
+time interval for analysis
+
+        interval: 300000
+
+override default range and interval
+
+      .init (opts = {}) ->
+        _.extend @, _.pick(opts, 'range', 'interval')
+
+filter sample data once updated
+
+        @on 'updated', =>
+          @filter()
+
+      .methods
+
+emit updated if data added
+
+        push: (elem...) ->
+          @data.push.apply @data, elem
+          @emit 'updated'
+
+filter sample data fall within predefined time range
+
+        filter: ->
+          @data = _.filter @data, (elem) =>
+            [start, end]= [new Date(Date.now() - @range), new Date()]
+            start <= elem.time and elem.time <= end
+      
     class Trade extends WebsocketClient
       @transform: (data) ->
         data.size = parseFloat data.size
         data.price = parseFloat data.price
+        data.time = new Date data.time
         data
 
       ws: null
@@ -47,4 +90,10 @@ save matched data into trade model
           @removeListener 'matched data', sails.log.debug
 
     module.exports =
-      trade: new Trade()
+      trade:
+        ws: new Trade()
+        Sample: Sample
+        analyse: ->
+          @sample = @Sample()
+          @ws.on 'matched data', (data) =>
+            @sample.push data
