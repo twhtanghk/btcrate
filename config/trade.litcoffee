@@ -22,25 +22,16 @@ override default range and interval
       .init (opts = {}) ->
         _.extend @, _.pick(opts, 'range', 'interval')
 
-filter sample data once updated
-
-        @on 'updated', =>
-          @filter()
-
       .methods
 
-emit updated if data added
+add elem, filter sample data fall within predefined time range and emit updated
 
         push: (elem...) ->
           @data.push.apply @data, elem
-          @emit 'updated'
-
-filter sample data fall within predefined time range
-
-        filter: ->
           @data = _.filter @data, (elem) =>
-            [start, end]= [new Date(Date.now() - @range), new Date()]
-            start <= elem.time and elem.time <= end
+            start = new Date(Date.now() - @range)
+            start <= elem.time
+          @emit 'updated'
       
     class Trade extends WebsocketClient
       @transform: (data) ->
@@ -93,7 +84,7 @@ save matched data into trade model
       trade:
         ws: new Trade()
         Sample: Sample
-        analyse: ->
+        analyze: ->
           @sample = @Sample()
           @ws.on 'matched data', (data) =>
             @sample.push data
