@@ -1,42 +1,94 @@
     _ = require 'lodash'
     {WebsocketClient} = require 'gdax'
-    stampit = require 'stampit'
+    {DataFrame} = require 'dataframe-js'
 
     Sample = require 'stampit-event-bus'
       .props 
 
 sample data for analysis
 
-        data: []
+        data: null
 
 default sample data within 1 hour
 
         range: 3600000
 
-time interval for analysis
-
-        interval: 300000
-
-override default range and interval
+override default range
 
       .init (opts = {}) ->
-        _.extend @, _.pick(opts, 'range', 'interval')
+        _.extend @, _.pick(opts, 'range')
+
+      .static
+        split: ([start, end], step) ->
+          (if step > 0 then [i, i + step] else [i + step, i]) for i in [start..end-step] by step
+
+        predicate: ([start, end], step, field) ->
+          ret = {}
+          @split
+            .apply @, arguments
+            .map ([start, end]) ->
+              ret[start] = (row) ->
+                elem = row[field]
+                start <= elem and elem < end
+          ret
+
+        groupBy: (df, field) ->
+          reducer = (ret, group) ->
+            ret[group.groupKey[field]] = group.group
+            ret
+          df?.groupBy(field).toCollection().reduce reducer, {}
+
+        groupByFunc: (df, conditions) ->
+          init = (ret, predicate, name) ->
+            ret[name] = []
+            ret
+          ret = _.reduce conditions, init, {}
+          _.each conditions, (predicate, name) ->
+            df?.toCollection().map (row) ->
+              if predicate row
+                ret[name].push row
+          _.each ret, (data, name) ->
+            ret[name] = new DataFrame ret[name], df?.listColumns()
+          ret
+
+        distinct: (df, field) ->
+          df.distinct(field).toDict()[field]
+ 
+        stat: (df) ->
+          volume: df.count()
+          size: df.stat.sum 'size'
+          price: df.stat.mean 'price'
+          min: df.stat.min 'price'
+          max: df.stat.max 'price'
+              
+        go: (df) ->
+          ret = @groupBy df, 'side'
+          _.each ret, (df, side) =>
+            ret[side] = @groupBy(df, 'product_id')
+            _.each ret[side], (df, product) =>
+              ret[side][product] = @stat df
+          ret
 
       .methods
 
 add elem, filter sample data fall within predefined time range and emit updated
 
         push: (elem...) ->
-          @data.push.apply @data, elem
-          @data = _.filter @data, (elem) =>
+          if @data?
+            @data = @data.push.apply @data, elem
+          else
+            @data = new DataFrame elem
+          @data = @data.filter (elem) =>
             start = new Date(Date.now() - @range)
-            start <= elem.time
+            start <= elem.get('time')
           @emit 'updated'
-      
+
     class Trade extends WebsocketClient
       @transform: (data) ->
-        data.size = parseFloat data.size
-        data.price = parseFloat data.price
+        if data.size?
+          data.size = parseFloat data.size
+        if data.price?
+          data.price = parseFloat data.price
         data.time = new Date data.time
         data
 
@@ -48,7 +100,8 @@ add elem, filter sample data fall within predefined time range and emit updated
         'ETH-USD'
       ]
 
-      constructor: ->
+      constructor: (opts = {}) ->
+        _.extend @, _.pick(opts, 'ratelist')
         super @ratelist, null, null, channels: [ 'ticker' ]
         @on 'error', (err) ->
           sails.log.error err
@@ -61,14 +114,14 @@ collect type list
           if data.type not in @type
             @type.push data.type
 
-filter matched data only
+emit data updated
 
           if data.type == 'match'
             @emit 'matched data', Trade.transform data
 
         @on 'matched data', (data) ->
 
-save matched data into trade model
+save data into trade model
 
           sails.models.trade
             .create data
@@ -85,6 +138,6 @@ save matched data into trade model
         ws: new Trade()
         Sample: Sample
         analyze: ->
-          @sample = @Sample()
+          @sample = @Sample range: 300000
           @ws.on 'matched data', (data) =>
             @sample.push data
