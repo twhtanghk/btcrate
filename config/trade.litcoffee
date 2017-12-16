@@ -185,6 +185,6 @@ save data into trade model
         ws: new Trade()
         Sample: Sample
         analyze: ->
-          @sample = @Sample range: 300000
+          @sample = @Sample()
           @ws.on 'matched data', (data) =>
             @sample.push data
