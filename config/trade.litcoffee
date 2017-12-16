@@ -19,37 +19,68 @@ override default range
         _.extend @, _.pick(opts, 'range')
 
       .static
-        split: ([start, end], step) ->
-          (if step > 0 then [i, i + step] else [i + step, i]) for i in [start..end-step] by step
 
-        predicate: ([start, end], step, field) ->
+cut input array with step interval
+return 
+  bin: [[s1, e1), [s2, e2), ..., [sn, en)]
+  predictate: [p1(elem), p2(elem), ..., pn(elem)]
+
+        cut: (array, step = 1) ->
+          min = _.min array
+          max = _.max array
+          bin = ([i, i + step] for i in [min..max] by step)
+          bin: bin
+          predicate: bin.map ([start, end]) -> (elem) ->
+            start <= elem and elem < end
+          
+cut input df for field with step interval
+convert field if fieldConv is specified
+return
+  bin: [[s1, e1), [s2, e2), ..., [sn, en)]
+  predictate: [p1(elem), p2(elem), ..., pn(elem)]
+
+        cutDf: (df, field, step = 1, fieldConv = null) ->
+          array = df.select(field).toDict()[field]
+          if fieldConv?
+            array = array.map fieldConv
+          {bin, predicate} = @cut array, step
+          bin: bin
+          predicate: predicate.map (cond) -> (row) ->
+            cond row.get field
+          
+data field conversion for above cut and cutDf
+
+        dateConv: (dt) ->
+          dt.getTime()
+
+group input df for field with step interval
+convert field if fieldConv is specified
+return
+  start1: df with rows fall within [start1, end1)
+  start2: df with rows fall within [start2, end2)
+  ...
+  startn: df with rows fall within [startn, endn)
+
+        groupByRange: (df, field, step = 1, fieldConv = null) ->
+          {bin, predicate} = @cutDf.apply @, arguments
+          keys = bin.map ([start, end]) ->
+            start
+          values = bin.map ->
+            new DataFrame [], df.listColumns()
+          df.map (row) ->
+            predicate.map (cond, i) ->
+              if cond row
+                values[i] = values[i].push row
           ret = {}
-          @split
-            .apply @, arguments
-            .map ([start, end]) ->
-              ret[start] = (row) ->
-                elem = row[field]
-                start <= elem and elem < end
+          _.each keys, (key, i) ->
+            ret[key] = values[i]
           ret
-
+            
         groupBy: (df, field) ->
           reducer = (ret, group) ->
             ret[group.groupKey[field]] = group.group
             ret
           df?.groupBy(field).toCollection().reduce reducer, {}
-
-        groupByFunc: (df, conditions) ->
-          init = (ret, predicate, name) ->
-            ret[name] = []
-            ret
-          ret = _.reduce conditions, init, {}
-          _.each conditions, (predicate, name) ->
-            df?.toCollection().map (row) ->
-              if predicate row
-                ret[name].push row
-          _.each ret, (data, name) ->
-            ret[name] = new DataFrame ret[name], df?.listColumns()
-          ret
 
         distinct: (df, field) ->
           df.distinct(field).toDict()[field]
@@ -61,12 +92,29 @@ override default range
           min: df.stat.min 'price'
           max: df.stat.max 'price'
               
-        go: (df) ->
-          ret = @groupBy df, 'side'
-          _.each ret, (df, side) =>
+transform raw df into stat df by time with specified time interval
+e.g. trade.Sample.statByTime(trade.sample.data).sortBy('product').show()
+
+        statByTime: (df, interval = 300000) ->
+          ret = new DataFrame [], [
+            'side'
+            'product'
+            'time'
+            'volume'
+            'size'
+            'price'
+            'min'
+            'max'
+          ]
+          _.each @groupBy(df, 'side'), (df, side) =>
             ret[side] = @groupBy(df, 'product_id')
             _.each ret[side], (df, product) =>
-              ret[side][product] = @stat df
+              ret[side][product] = @groupByRange df, 'time', interval, @dateConv
+              _.each ret[side][product], (df, time) =>
+                ret = ret.push _.extend @stat(df), 
+                  side: side
+                  product: product
+                  time: time
           ret
 
       .methods
@@ -123,8 +171,7 @@ emit data updated
 
 save data into trade model
 
-          sails.models.trade
-            .create data
+          sails.models.trade?.create data
             .catch sails.log.error
 
       debug: (enable = true) ->
