@@ -20,38 +20,64 @@ override default range
 
       .static
 
-cut input array with step interval
+cut input array with specified bins
+see [pandas.cut](https://pandas.pydata.org/pandas-docs/stable/generated/pandas.cut.html)
 return 
-  bin: [[s1, e1), [s2, e2), ..., [sn, en)]
+  out: [(s1, e1], (s2, e2], ..., (sn, en]]
   predictate: [p1(elem), p2(elem), ..., pn(elem)]
 
-        cut: (array, step = 1) ->
-          min = _.min array
-          max = _.max array
-          bin = ([i, i + step] for i in [min..max] by step)
-          bin: bin
-          predicate: bin.map ([start, end]) -> (elem) ->
-            start <= elem and elem < end
-          
+        cut: (array, bins = 10) ->
+          if typeof bins == 'number'
+            [min, max] = [_.min(array), _.max(array)]
+            extend = (max - min) * 0.001
+            [min, max] = [min - extend, max + extend]
+            step = (max - min) / bins
+            out = ([i, i + step] for i in [min..max] by step)
+            @cut array, out
+          else if bins instanceof Array
+            out = ([bins[i], bins[i + 1]] for i in [0..bins.length - 2])
+            out: out
+            predicate: out.map ([start, end]) -> (elem) ->
+              start < elem and elem <= end
+          else
+            throw new Error "bins should be number or array"
+
 cut input df for field with step interval
 convert field if fieldConv is specified
 return
   bin: [[s1, e1), [s2, e2), ..., [sn, en)]
   predictate: [p1(elem), p2(elem), ..., pn(elem)]
 
-        cutDf: (df, field, step = 1, fieldConv = null) ->
+        cutDf: (df, field, bins = 10, fieldConv = null) ->
           array = df.select(field).toDict()[field]
           if fieldConv?
             array = array.map fieldConv
-          {bin, predicate} = @cut array, step
-          bin: bin
+          {out, predicate} = @cut array, bins
+          out: out
           predicate: predicate.map (cond) -> (row) ->
             cond row.get field
           
-data field conversion for above cut and cutDf
+date field conversion for above cut and cutDf
 
         dateConv: (dt) ->
           dt.getTime()
+
+date bins for input array with specified interval in millisecond (default 5min)
+
+        dateBins: (array, interval = 300000) ->
+          [min, max] = [_.min(array), _.max(array)]
+          ret =
+            min: [
+              Math.floor(min / interval) * interval
+              min % interval
+            ]
+            max: [
+              Math.ceil(max / interval) * interval
+              max % interval
+            ]
+          min = if ret.min[1] == 0 then ret.min[0] - interval else ret.min[0]
+          max = ret.max[0]
+          i for i in [min..max] by interval
 
 group input df for field with step interval
 convert field if fieldConv is specified
@@ -61,11 +87,11 @@ return
   ...
   startn: df with rows fall within [startn, endn)
 
-        groupByRange: (df, field, step = 1, fieldConv = null) ->
-          {bin, predicate} = @cutDf.apply @, arguments
-          keys = bin.map ([start, end]) ->
+        groupByRange: (df, field, bins = 10, fieldConv = null) ->
+          {out, predicate} = @cutDf.apply @, arguments
+          keys = out.map ([start, end]) ->
             start
-          values = bin.map ->
+          values = out.map ->
             new DataFrame [], df.listColumns()
           df.map (row) ->
             predicate.map (cond, i) ->
@@ -109,7 +135,9 @@ e.g. trade.Sample.statByTime(trade.sample.data).sortBy('product').show()
           _.each @groupBy(df, 'side'), (df, side) =>
             ret[side] = @groupBy(df, 'product_id')
             _.each ret[side], (df, product) =>
-              ret[side][product] = @groupByRange df, 'time', interval, @dateConv
+              field = 'time'
+              bins = @dateBins df.select(field).toDict()[field]
+              ret[side][product] = @groupByRange df, field, bins, @dateConv
               _.each ret[side][product], (df, time) =>
                 ret = ret.push _.extend @stat(df), 
                   side: side
