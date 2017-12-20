@@ -3,10 +3,10 @@ _ = require 'lodash'
 
 module.exports =
   cron:
-    '0 */5 * * * *': ->
+    '0 * * * * *': ->
       sails.log.debug 'analysis job triggered'
 
-      interval = 300000
+      interval = 60000
       df = sails.config.trade.sample.data
       {groupBy, stat} = sails.config.trade.Sample
 
