@@ -32,3 +32,7 @@ module.exports =
 
     deltaMax:
       type: 'float'
+
+  afterCreate: (created, cb) ->
+    @publishCreate created
+    cb()

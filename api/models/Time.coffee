@@ -32,3 +32,7 @@ module.exports =
 
     max:
       type: 'float'
+
+  afterCreate: (created, cb) ->
+    @publishCreate created
+    cb()
