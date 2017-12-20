@@ -4,6 +4,7 @@ module.exports =
       'bodyParser'
       'compress'
       'router' 
+      'www'
       'favicon'
       '404'
       '500'
