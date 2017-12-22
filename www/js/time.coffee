@@ -8,23 +8,21 @@ E = require 'react-script'
 
 class Grid extends React.Component
   columns: [
-    { key: 'id', name: 'id', locked: true }
-    { key: 'product', name: 'product', sortable: true }
-    { key: 'side', name: 'side', sortable: true }
-    { key: 'volume', name: 'volume', sortable: true }
-    { key: 'size', name: 'size', sortable: true }
-    { key: 'price', name: 'price', sortable: true }
-    { key: 'min', name: 'min', sortable: true }
-    { key: 'max', name: 'max', sortable: true }
-    { key: 'tmStart', name: 'start time', sortable: true }
-    { key: 'tmEnd', name: 'end time', sortable: true }
+    { key: 'id', name: 'id' }
+    { key: 'product', name: 'product' }
+    { key: 'date', name: 'date' }
+    { key: 'open', name: 'open' }
+    { key: 'close', name: 'close' }
+    { key: 'low', name: 'low' }
+    { key: 'high', name: 'high' }
+    { key: 'volume', name: 'volume' }
   ]
 
   row: (i) =>
     @props.data[i]
 
   length: =>
-    @props.data.length
+    @props.data?.length
 
   render: ->
     E ReactDataGrid,
@@ -37,7 +35,8 @@ module.exports =
   component: Grid
   reducer: (state, action) ->
     switch action.type
-      when 'time created'
+      when 'trade created'
         update state, data: $push: [action.data]
       else
         state || data: []
+

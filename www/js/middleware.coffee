@@ -13,13 +13,9 @@ module.exports = (store) ->
     .on 'error', toastr.error
     .on 'disconnect', ->
       toastr.error 'ws disconnected'
-    .on 'time', ({verb, id, data}) ->
+    .on 'trade', ({verb, id, data}) ->
       store.dispatch 
-        type: "time #{verb}"
-        data: data
-    .on 'delta', ({verb, id, data}) ->
-      store.dispatch
-        type: "delta #{verb}"
+        type: "trade #{verb}"
         data: data
 
   (next) -> (action) ->
