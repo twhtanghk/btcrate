@@ -41,6 +41,6 @@ module.exports =
         {data} = state
         if not data.get(action.data.product)?
           data = data.set action.data.product, List()
-        data: data.set action.data.product, data.get(action.data.product)?.push action.data
+        data: data.set action.data.product, data.get(action.data.product)?.unshift action.data
       else
         state || data: Map()
