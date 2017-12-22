@@ -8,8 +8,6 @@ E = require 'react-script'
 
 class Grid extends React.Component
   columns: [
-    { key: 'id', name: 'id' }
-    { key: 'product', name: 'product' }
     { key: 'date', name: 'date' }
     { key: 'open', name: 'open' }
     { key: 'close', name: 'close' }
