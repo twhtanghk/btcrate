@@ -2,7 +2,7 @@ require 'bootstrap/dist/css/bootstrap.css'
 
 _ = require 'lodash'
 React = require 'react'
-update = require 'react-addons-update'
+{Map, List} = require 'immutable'
 ReactDataGrid = require 'react-data-grid'
 E = require 'react-script'
 
@@ -31,16 +31,16 @@ class Grid extends React.Component
       rowsCount: @length()
       minHeight: 500
 
-{Map, List} = require 'immutable'
-
 module.exports =
   component: Grid
   reducer: (state, action) ->
     switch action.type
       when 'trade created'
         {data} = state
-        if not data.get(action.data.product)?
-          data = data.set action.data.product, List()
-        data: data.set action.data.product, data.get(action.data.product)?.unshift action.data
+        {product} = action.data
+        if not data.get(product)?
+          data = data.set product, List()
+        data: data.update product, (list) ->
+          list.unshift action.data
       else
         state || data: Map()
