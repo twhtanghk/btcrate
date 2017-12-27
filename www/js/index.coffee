@@ -23,6 +23,7 @@ elem =
     E MuiThemeProvider,
       E 'div',
         E Toastr.default
-        E Time.component
+        E Time.component, product: 'ETH-BTC'
+        E Time.component, product: 'BTC-USD'
 
 ReactDOM.render elem, document.getElementById 'root'

@@ -22,7 +22,9 @@ class Grid extends React.Component
   length: =>
     @props.data?.get(@product)?.size || 0
 
-  product: 'BTC-USD'
+  constructor: (props) ->
+    super props
+    @product = props.product || 'BTC-USD'
 
   render: ->
     E ReactDataGrid,
