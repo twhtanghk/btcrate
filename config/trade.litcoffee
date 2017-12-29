@@ -109,6 +109,6 @@ save data into gdax model
       trade:
         ws: new Trade()
         analyze: ->
-          @slot = Sample range: 60 * 1000
+          @slot = Sample()
           @ws.on 'matched data', (data) =>
             @slot.push data
