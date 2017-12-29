@@ -3,7 +3,7 @@
     btc = require 'bitcoinjs-lib'
     needle = Promise.promisifyAll require 'needle'
     
-    module.exports =
+    module.exports = btc:
     
 return key pair for specified private wif or create key pair if not specified
 
