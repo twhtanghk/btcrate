@@ -10,4 +10,4 @@ RUN (cd backend && yarn install) \
 	
 EXPOSE 3000
 
-ENTRYPOINT (cd frontend && yarn build) && (cd backend && npm start)
+CMD (cd frontend && yarn build) && (cd backend && npm start)
