@@ -1,9 +1,10 @@
-version: '2'
+version: '3'
+
 services:
   btcrate:
     image: twhtanghk/btcrate
     ports:
-      - 1337
+      - 3000
     env_file: 
       - ./.env
       - ../.env
