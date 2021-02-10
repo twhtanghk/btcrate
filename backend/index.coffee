@@ -1,8 +1,10 @@
 Koa = require 'koa'
 logger = require 'koa-logger'
 bodyParser = require 'koa-bodyparser'
+methodOverride = require 'koa-methodoverride'
 serve = require 'koa-static'
 router = require './router'
+global.config = require('config')().bootstrap()
 
 app = new Koa()
 app
@@ -16,8 +18,8 @@ app
   .use logger()
   .use require 'koa-404-handler'
   .use bodyParser()
-  .use methodOverrider()
+  .use methodOverride()
   .use router.routes()
   .use serve 'dist'
-  .listen parseInt(processenv.PORT) || 3000
+  .listen parseInt(process.env.PORT) || 3000
   .on 'error', console.error
