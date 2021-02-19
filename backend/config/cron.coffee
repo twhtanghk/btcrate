@@ -13,13 +13,13 @@ module.exports =
     {
       at: "0 */5 * * * *"
       task: ->
-        ret = {}
+        res = {}
         for product_id in process.env.PRODUCTS.split ','
-          ret[product_id] = {}
+          res[product_id] = {}
           for granularity in [60, 300, 900, 3600, 21600, 86400]
-            indicators = analysis.indicators await rate {product_id, granularity}
-            if eval compile process.env.CONDITION, bare: true
-              msg = JSON.stringify {product_id, granularity, indicators}
-              client.publish 'stock/alert', msg
+            res[product_id][granularity] = analysis.indicators await rate {product_id, granularity}
+        if eval compile process.env.CONDITION, bare: true
+          msg = JSON.stringify res
+          client.publish 'stock/alert', msg
     }
   ]
