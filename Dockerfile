@@ -5,7 +5,7 @@ ADD . $APP
 
 WORKDIR $APP
 
-RUN (cd backend && yarn install)
+RUN (cd backend && npm install)
 	
 EXPOSE 3000
 
