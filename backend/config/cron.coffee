@@ -2,7 +2,7 @@
 analysis = require 'analysis'
 rate = require '../rate'
 client = require 'mqtt'
-  .connect process.env.MQTTURL
+  .connect process.env.MQTTURL,
     username: process.env.MQTTUSER
     clientId: process.env.MQTTCLIENT
     clean: false
